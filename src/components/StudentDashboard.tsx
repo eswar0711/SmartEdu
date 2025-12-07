@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import type { User, Assessment, Submission } from '../utils/supabaseClient';
 import NavigationSidebar from './NavigationSidebar';
+import TestInstructions from './TestInstructions';
 import { BookOpen, Clock, CheckCircle, PlayCircle, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +16,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -52,6 +55,26 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
     return submissions.find((s) => s.assessment_id === assessmentId);
   };
 
+  // ✅ NEW: Handle Start Test button click
+  const handleStartTest = (assessment: Assessment) => {
+    setSelectedAssessment(assessment);
+    setShowInstructions(true);
+  };
+
+  // ✅ NEW: Handle when student agrees to instructions
+  const handleAgreeToInstructions = () => {
+    if (selectedAssessment) {
+      setShowInstructions(false);
+      navigate(`/take-test/${selectedAssessment.id}`);
+    }
+  };
+
+  // ✅ NEW: Handle when student cancels
+  const handleCancelTest = () => {
+    setShowInstructions(false);
+    setSelectedAssessment(null);
+  };
+
   if (loading) {
     return (
       <div className="flex">
@@ -73,7 +96,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
           <p className="text-gray-600">View and attempt available assessments</p>
         </div>
 
-        {/* AI Assistant Quick Access Card - NEW */}
+        {/* AI Assistant Quick Access Card */}
         <div className="mb-6 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -201,9 +224,10 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
                             View Results
                           </button>
                         ) : (
+                          // ✅ CHANGED: Now shows instructions modal instead of direct navigation
                           <button
-                            onClick={() => navigate(`/take-test/${assessment.id}`)}
-                            className="px-4 py-2 bg-gray-100 text-green-600 rounded-lg hover:bg-primary-300 transition-colors flex items-center gap-2"
+                            onClick={() => handleStartTest(assessment)}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                           >
                             <PlayCircle className="w-4 h-4" />
                             Start Test
@@ -218,6 +242,16 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ user }) => {
           )}
         </div>
       </div>
+
+      {/* ✅ NEW: Test Instructions Modal */}
+      {showInstructions && selectedAssessment && (
+        <TestInstructions
+          assessmentTitle={selectedAssessment.title}
+          duration={selectedAssessment.duration_minutes}
+          onAgree={handleAgreeToInstructions}
+          onCancel={handleCancelTest}
+        />
+      )}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+// src/pages/TestTaking.tsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
@@ -30,15 +31,18 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
   const [isTimeExpired, setIsTimeExpired] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize test
+  // ✅ FIX: Initialize test (runs on mount and assessmentId change)
   useEffect(() => {
+    if (!assessmentId) {
+      setError('Assessment ID is missing');
+      setLoading(false);
+      return;
+    }
+
     const initializeTest = async () => {
       try {
-        if (!assessmentId) {
-          setError('Assessment ID is missing');
-          setLoading(false);
-          return;
-        }
+        setLoading(true);
+        console.log('🔄 Initializing test for assessment:', assessmentId);
 
         // Fetch assessment
         const { data: assessmentData, error: assessmentError } = await supabase
@@ -60,7 +64,8 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
         const { data: questionsData, error: questionsError } = await supabase
           .from('questions')
           .select('*')
-          .eq('assessment_id', assessmentId);
+          .eq('assessment_id', assessmentId)
+          .order('question_number', { ascending: true });
 
         if (questionsError) {
           console.error('Questions fetch error:', questionsError);
@@ -71,15 +76,16 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
 
         setQuestions(questionsData || []);
 
-        // Create or retrieve test session
+        // ✅ FIX: Get or create test session - ALWAYS checks database
         const session = await getOrCreateTestSession(
           assessmentId,
           assessmentData.duration_minutes
         );
         setTestSession(session);
 
-        // Calculate remaining time
+        // ✅ FIX: Calculate remaining time from server
         const remaining = calculateRemainingTime(session);
+        console.log(`⏱️ Time remaining: ${remaining}s (${Math.floor(remaining / 60)}m ${remaining % 60}s)`);
         setTimeLeft(remaining);
 
         if (remaining <= 0) {
@@ -96,9 +102,9 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
     };
 
     initializeTest();
-  }, [assessmentId]);
+  }, [assessmentId, user.id]); // Re-run if assessmentId changes
 
-  // Server-side timer
+  // ✅ FIX: Timer - updates every second from server time
   useEffect(() => {
     if (!testSession || isTimeExpired || submitting) return;
 
@@ -109,7 +115,7 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
         setIsTimeExpired(true);
         setTimeLeft(0);
         clearInterval(timer);
-        alert('⏱️ Time expired! Auto-submitting your test...');
+        console.warn('⏱️ Time expired!');
         handleAutoSubmit();
       } else {
         setTimeLeft(remaining);
@@ -120,7 +126,7 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
   }, [testSession, isTimeExpired, submitting]);
 
   const handleAnswerChange = (questionId: string, answer: string) => {
-    setAnswers({ ...answers, [questionId]: answer });
+    setAnswers(prev => ({ ...prev, [questionId]: answer }));
   };
 
   const handleAutoSubmit = async () => {
@@ -175,6 +181,7 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
         throw submitError;
       }
 
+      console.log('✅ Test submitted successfully');
       alert(
         isAutoSubmit
           ? '✅ Test auto-submitted due to time expiry!'
