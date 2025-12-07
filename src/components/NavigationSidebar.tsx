@@ -10,6 +10,8 @@ import {
   Sparkles,
   User as UserIcon,
   Lock,
+  BarChart3,
+  Users,
   
 } from 'lucide-react';
 import { signOut } from '../utils/auth';
@@ -71,7 +73,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ user }) => {
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
         {/* Dashboard */}
-        <Link
+        {/* <Link
           to="/"
           className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${
             isActive('/')
@@ -80,14 +82,80 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ user }) => {
           }`}
         >
           <Home className="w-5 h-5" />
-          <span>Dashboard</span>
-        </Link>
+          <span>Dashboar</span>
+        </Link> */}
+          
+
+
+          {/* amin navigation */}
+          {user.role === 'admin' && (
+  <>
+    <Link
+      to="/admin/dashboard"
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${
+        isActive('/admin/dashboard')
+          ? 'bg-blue-100 text-blue-700'
+          : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+      }`}
+    >
+      <BarChart3 className="w-5 h-5" />
+      <span>Admin Dashboard</span>
+    </Link>
+
+    <Link
+      to="/admin/users"
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${
+        isActive('/admin/users')
+          ? 'bg-blue-100 text-blue-700'
+          : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+      }`}
+    >
+      <Users className="w-5 h-5" />
+      <span>User Management</span>
+    </Link>
+
+    <Link
+      to="/admin/submissions"
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${
+        isActive('/admin/submissions')
+          ? 'bg-blue-100 text-blue-700'
+          : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+      }`}
+    >
+      <FileText className="w-5 h-5" />
+      <span>View Submissions</span>
+    </Link>
+
+    <Link
+      to="/admin/analytics"
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${
+        isActive('/admin/analytics')
+          ? 'bg-blue-100 text-blue-700'
+          : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+      }`}
+    >
+      <BarChart3 className="w-5 h-5" />
+      <span>Analytics</span>
+    </Link>
+  </>
+)}
 
 
 
         {/* Faculty Navigation */}
         {user.role === 'faculty' && (
           <>
+          <Link
+          to="/"
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${
+            isActive('/faculty/dashboard')
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+          }`}
+        >
+          <Home className="w-5 h-5" />
+          <span>Dashboar</span>
+        </Link>
             <Link
               to="/create-assessment"
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${
@@ -121,6 +189,19 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ user }) => {
         {/* Student Navigation */}
         {user.role === 'student' && (
           <>
+
+          <Link
+          to="/"
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${
+            isActive('/faculty/dashboard')
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+          }`}
+        >
+          <Home className="w-5 h-5" />
+          <span>Dashboar</span>
+        </Link>
+        
             <Link
               to="/courses"
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${

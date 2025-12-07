@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../utils/supabaseClient';
-import type { User } from '../utils/supabaseClient';
-import NavigationSidebar from './NavigationSidebar';
+import { supabase } from '../../utils/supabaseClient';
+import type { User } from '../../utils/supabaseClient';
+import NavigationSidebar from '../NavigationSidebar';
 import { BarChart3, Users, BookOpen, Download } from 'lucide-react';
 
 interface AdminAnalyticsProps {

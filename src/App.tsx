@@ -23,10 +23,11 @@ import AIAssistantModule from './components/AIAssistant/AIAssistantModule';
 import { ChangePassword, UserProfile as UserProfileComponent } from './components/UserSettings';
 
 // Components - Admin (NEW)
-import AdminDashboard from './components/AdminDashboardd';
-import AdminUserManagement from './components/AdminUserManagement';
-import AdminAnalytics from './components/AdminAnalytics';
+import AdminDashboard from './components/Admin/AdminDashboardd';
+import AdminUserManagement from './components/Admin/AdminUserManagement';
+import AdminAnalytics from './components/Admin/AdminAnalytics';
 
+import AdminSubmissions from './components/Admin/AdminSubmissions';
 // Type conversion utility
 const convertAuthUserToComponentUser = (authUser: AuthUser): any => {
   return {
@@ -110,6 +111,11 @@ const App: React.FC = () => {
             )
           }
         />
+        {/* admin submisssion view */}
+        <Route path="/admin/submissions" 
+        element={<AdminSubmissions 
+        user={user} 
+        />} />
 
         {/* ===== MAIN DASHBOARD ROUTE ===== */}
         <Route
