@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { signIn, signUp } from '../utils/auth';
-import { BookOpen } from 'lucide-react';
-import '../index.css'
+import '../index.css';
+import EduvergeLogo from '../../dist/assets/smartVerg.jpeg'; // <- your logo file
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -25,7 +25,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       if (isSignUp) {
         await signUp(email, password, first_name, role);
         alert('Account created! Please check your email to verify your account.');
-        // Reset form
         setIsSignUp(false);
         setEmail('');
         setPassword('');
@@ -44,97 +43,112 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center p-4">
-      <div className="bg-gray-50 rounded-2xl shadow-2xl w-full max-w-md p-8">
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-primary-100 p-3 rounded-full mb-4">
-            <BookOpen className="w-8 h-8 text-primary-600" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800">EduVerge</h1>
-          <p className="text-gray-600 mt-2">Smart Learning & Assessment</p>
-        </div>
+      {/* Card with watermark */}
+      <div className="relative bg-gray-50 rounded-3xl shadow-2xl w-full max-w-md p-10 overflow-hidden">
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {isSignUp && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-              <input
-                type="text"
-                value={first_name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-                required
-                placeholder="Enter your full name"
+        {/* Watermark logo in background */}
+        <img
+          src={EduvergeLogo}
+          alt="EduVerge watermark"
+          className="pointer-events-none select-none absolute -top-20 -right-16 w-80 opacity-10 blur-[1px]"
+        />
+
+        {/* Foreground content */}
+        <div className="relative z-10">
+          <div className="flex flex-col items-center mb-8">
+            {/* Small logo on top */}
+            <div className="bg-primary-100 p-3 rounded-full mb-4 shadow-sm">
+              <img
+                src={EduvergeLogo}
+                alt="EduVerge logo"
+                className="w-10 h-10 object-contain"
               />
             </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-              required
-              
-            />
+            <h1 className="text-3xl font-bold text-gray-800">EduVerge</h1>
+            <p className="text-gray-600 mt-2">Smart Learning &amp; Assessment</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-              required
-              minLength={6}
-             
-            />
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {isSignUp && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={first_name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
+                  required
+                  placeholder="Enter your full name"
+                />
+              </div>
+            )}
 
-          {isSignUp && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as 'faculty' | 'student')}
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
-              >
-                <option value="student">Student</option>
-                <option value="faculty">Faculty</option>
-              </select>
+                required
+              />
             </div>
-          )}
 
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
+                required
+                minLength={6}
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary-600 hover:bg-primary-700 text-blue-500 font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
-          </button>
-        </form>
+            {isSignUp && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as 'faculty' | 'student')}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900"
+                >
+                  <option value="student">Student</option>
+                  <option value="faculty">Faculty</option>
+                </select>
+              </div>
+            )}
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setIsSignUp(!isSignUp);
-              setError('');
-              setName('');
-              setEmail('');
-              setPassword('');
-            }}
-            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
-          >
-            {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
-          </button>
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary-600 hover:bg-primary-700 text-blue-500 font-medium py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+                setName('');
+                setEmail('');
+                setPassword('');
+              }}
+              className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            >
+              {isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
