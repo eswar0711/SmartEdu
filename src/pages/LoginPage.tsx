@@ -50,18 +50,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
         <img
           src={OnlyLogo}
           alt="EduVerge watermark"
-          className="pointer-events-none select-none absolute -top-20 -right-16 w-80 opacity-15 blur-[1px]"
+          className="pointer-events-none select-none absolute -top-10 -right-16 w-80 opacity-15 blur-[1px]"
         />
 
         {/* Foreground content */}
         <div className="relative z-10">
           <div className="flex flex-col items-center mb-8">
             {/* Small logo on top */}
-            <div className="bg-primary-100 p-3 rounded-full mb-4 shadow-sm">
+            <div className="bg-primary-100 p-3 rectangle-full mb-4 shadow-sm">
               <img
                 src={EduvergeLogo}
                 alt="EduVerge logo"
-                className="w-12 h-12 object-contain"
+                className="w-16 h-16 object-contain"
               />
             </div>
             <h1 className="text-3xl font-bold text-gray-800">EduVerge</h1>

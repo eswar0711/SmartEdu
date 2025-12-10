@@ -4,13 +4,16 @@ import NavigationSidebar from '../NavigationSidebar';
 import {
   Download,
   Search,
-  
-  Star
+  Star,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
+
 
 interface AdminSubmissionsProps {
   user: any;
 }
+
 
 interface Submission {
   id: string;
@@ -30,6 +33,7 @@ interface Submission {
   is_auto_submitted: boolean;
 }
 
+
 interface GradeForm {
   submissionId: string;
   mcq_score: number;
@@ -38,6 +42,7 @@ interface GradeForm {
   faculty_feedback: string;
   faculty_rating: number;
 }
+
 
 const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -57,18 +62,27 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
   });
   const [actionLoading, setActionLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  
+  // ✨ PAGINATION STATES
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10; // Show 10 items per page
+
 
   useEffect(() => {
     fetchSubmissions();
   }, []);
 
+
   useEffect(() => {
     filterSubmissions();
+    setCurrentPage(1); // Reset to page 1 when filters change
   }, [submissions, searchQuery, gradedFilter]);
+
 
   const fetchSubmissions = async () => {
     try {
       console.log('📝 Fetching all submissions...');
+
 
       const { data, error } = await supabase
         .from('submissions')
@@ -79,10 +93,12 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
         `)
         .order('submitted_at', { ascending: false });
 
+
       if (error) {
         console.error('❌ Error fetching submissions:', error);
         return;
       }
+
 
       // Transform data to match our interface
       const transformedData = data?.map((submission: any) => ({
@@ -103,6 +119,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
         is_auto_submitted: submission.is_auto_submitted
       })) || [];
 
+
       console.log('✓ Fetched submissions:', transformedData);
       setSubmissions(transformedData);
     } catch (error) {
@@ -112,8 +129,10 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
     }
   };
 
+
   const filterSubmissions = () => {
     let filtered = [...submissions];
+
 
     // Search filter
     if (searchQuery) {
@@ -125,6 +144,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
       );
     }
 
+
     // Graded filter
     if (gradedFilter === 'graded') {
       filtered = filtered.filter(s => s.faculty_rating !== null);
@@ -132,12 +152,42 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
       filtered = filtered.filter(s => s.faculty_rating === null);
     }
 
+
     setFilteredSubmissions(filtered);
   };
+
+
+  // ✨ PAGINATION CALCULATIONS
+  const totalPages = Math.ceil(filteredSubmissions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedSubmissions = filteredSubmissions.slice(startIndex, endIndex);
+
+
+  // ✨ PAGINATION HANDLERS
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
 
   const submitGrade = async () => {
     try {
       setActionLoading(true);
+
 
       if (gradeForm.total_score < 0 || gradeForm.total_score > 100) {
         alert('⚠️ Total score must be between 0-100');
@@ -145,7 +195,9 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
         return;
       }
 
+
       console.log('📊 Submitting grade for submission:', gradeForm.submissionId);
+
 
       const { error } = await supabase
         .from('submissions')
@@ -158,15 +210,18 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
         })
         .eq('id', gradeForm.submissionId);
 
+
       if (error) {
         console.error('❌ Error grading submission:', error);
         alert(`Failed to grade: ${error.message}`);
         return;
       }
 
+
       console.log('✓ Grade submitted successfully');
       setSuccessMessage('✅ Submission graded successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
+
 
       // Update local state
       setSubmissions(submissions.map(s =>
@@ -182,6 +237,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
           : s
       ));
 
+
       setShowGradeModal(false);
       setSelectedSubmission(null);
       setGradeForm({ submissionId: '', mcq_score: 0, theory_score: 0, total_score: 0, faculty_feedback: '', faculty_rating: 0 });
@@ -193,11 +249,13 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
     }
   };
 
+
   const downloadSubmission = (submission: Submission) => {
     if (!submission.answers) {
       alert('⚠️ No answers attached to this submission');
       return;
     }
+
 
     // Create downloadable JSON file
     const dataStr = JSON.stringify(submission.answers, null, 2);
@@ -210,7 +268,9 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
     URL.revokeObjectURL(url);
   };
 
+
   const isGraded = (submission: Submission) => submission.faculty_rating !== null;
+
 
   if (loading) {
     return (
@@ -223,9 +283,11 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
     );
   }
 
+
   return (
     <div className="flex bg-gray-50 min-h-screen">
       <NavigationSidebar user={user} />
+
 
       <div className="flex-1 p-8">
         <div className="mb-8">
@@ -233,12 +295,14 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
           <p className="text-gray-600">View and grade all student submissions</p>
         </div>
 
+
         {/* Success Message */}
         {successMessage && (
           <div className="mb-4 p-4 bg-green-100 border border-green-200 rounded-lg text-green-700">
             {successMessage}
           </div>
         )}
+
 
         {/* Filters */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-8">
@@ -258,6 +322,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
               </div>
             </div>
 
+
             {/* Graded Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Filter</label>
@@ -274,114 +339,165 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
           </div>
         </div>
 
+
         {/* Submissions Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-6 border-b border-gray-200">
             <p className="text-sm text-gray-600">
-              Showing {filteredSubmissions.length} of {submissions.length} submissions
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredSubmissions.length)} of {filteredSubmissions.length} submissions (Page {currentPage} of {totalPages})
             </p>
           </div>
+
 
           {filteredSubmissions.length === 0 ? (
             <div className="p-8 text-center">
               <p className="text-gray-500">No submissions found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Student</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Assessment</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">MCQ</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Theory</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Total</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Rating</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Submitted</th>
-                    <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredSubmissions.map((submission) => (
-                    <tr key={submission.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium">
-                        <div>
-                          <p className="text-gray-800">{submission.student_name}</p>
-                          <p className="text-gray-500 text-xs">{submission.student_email}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {submission.assessment_title}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        {submission.mcq_score !== null ? (
-                          <span className="font-medium text-blue-600">{submission.mcq_score}</span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        {submission.theory_score !== null ? (
-                          <span className="font-medium text-purple-600">{submission.theory_score}</span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        {submission.total_score !== null ? (
-                          <span className="font-medium text-green-600">{submission.total_score}/100</span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        {isGraded(submission) ? (
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-medium text-yellow-600">{submission.faculty_rating}</span>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">Not Graded</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {new Date(submission.submitted_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 text-sm space-x-2">
-                        <button
-                          onClick={() => {
-                            setSelectedSubmission(submission);
-                          }}
-                          className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedSubmission(submission);
-                            setGradeForm({
-                              submissionId: submission.id,
-                              mcq_score: submission.mcq_score || 0,
-                              theory_score: submission.theory_score || 0,
-                              total_score: submission.total_score || 0,
-                              faculty_feedback: submission.faculty_feedback || '',
-                              faculty_rating: submission.faculty_rating || 0
-                            });
-                            setShowGradeModal(true);
-                          }}
-                          className="text-green-600 hover:text-green-700 font-medium hover:underline"
-                        >
-                          Grade
-                        </button>
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Student</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Assessment</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">MCQ</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Theory</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Total</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Rating</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Submitted</th>
+                      <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {paginatedSubmissions.map((submission) => (
+                      <tr key={submission.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 text-sm font-medium">
+                          <div>
+                            <p className="text-gray-800">{submission.student_name}</p>
+                            <p className="text-gray-500 text-xs">{submission.student_email}</p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {submission.assessment_title}
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          {submission.mcq_score !== null ? (
+                            <span className="font-medium text-blue-600">{submission.mcq_score}</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          {submission.theory_score !== null ? (
+                            <span className="font-medium text-purple-600">{submission.theory_score}</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          {submission.total_score !== null ? (
+                            <span className="font-medium text-green-600">{submission.total_score}/100</span>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm">
+                          {isGraded(submission) ? (
+                            <div className="flex items-center gap-1">
+                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                              <span className="font-medium text-yellow-600">{submission.faculty_rating}</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">Not Graded</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {new Date(submission.submitted_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 text-sm space-x-2">
+                          <button
+                            onClick={() => {
+                              setSelectedSubmission(submission);
+                            }}
+                            className="text-blue-600 hover:text-blue-700 font-medium hover:underline"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedSubmission(submission);
+                              setGradeForm({
+                                submissionId: submission.id,
+                                mcq_score: submission.mcq_score || 0,
+                                theory_score: submission.theory_score || 0,
+                                total_score: submission.total_score || 0,
+                                faculty_feedback: submission.faculty_feedback || '',
+                                faculty_rating: submission.faculty_rating || 0
+                              });
+                              setShowGradeModal(true);
+                            }}
+                            className="text-green-600 hover:text-green-700 font-medium hover:underline"
+                          >
+                            Grade
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ✨ PAGINATION CONTROLS */}
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Total: {filteredSubmissions.length} submissions
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {/* Previous Button */}
+                  <button
+                    onClick={goToPreviousPage}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white font-medium'
+                            : 'border border-gray-300 text-gray-700 hover:bg-gray-100'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Next Button */}
+                  <button
+                    onClick={goToNextPage}
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
+
 
       {/* View Submission Modal */}
       {selectedSubmission && !showGradeModal && (
@@ -401,6 +517,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
               </button>
             </div>
 
+
             {/* Body */}
             <div className="px-8 py-6 space-y-4">
               {/* Submission Details */}
@@ -414,6 +531,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                   <span className="text-gray-600">{selectedSubmission.is_auto_submitted ? 'Yes' : 'No'}</span>
                 </div>
               </div>
+
 
               {/* Scores Display */}
               <div className="grid grid-cols-3 gap-3">
@@ -437,6 +555,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                 </div>
               </div>
 
+
               {/* Submitted Answers */}
               {selectedSubmission.answers && (
                 <div>
@@ -447,6 +566,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                 </div>
               )}
 
+
               {/* Faculty Feedback */}
               {selectedSubmission.faculty_feedback && (
                 <div>
@@ -456,6 +576,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                   </div>
                 </div>
               )}
+
 
               {/* Download Button */}
               {selectedSubmission.answers && (
@@ -468,6 +589,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                 </button>
               )}
             </div>
+
 
             {/* Footer */}
             <div className="px-8 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl flex gap-2">
@@ -501,6 +623,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
         </div>
       )}
 
+
       {/* Grade Modal */}
       {showGradeModal && selectedSubmission && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -510,6 +633,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
               <h3 className="text-2xl font-bold text-gray-800">Grade Submission</h3>
               <p className="text-sm text-gray-500 mt-1">{selectedSubmission.student_name}</p>
             </div>
+
 
             {/* Body */}
             <div className="px-8 py-6 space-y-4">
@@ -527,6 +651,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                 />
               </div>
 
+
               {/* Theory Score Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Theory Score</label>
@@ -541,6 +666,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                 />
               </div>
 
+
               {/* Total Score Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Total Score (0-100)</label>
@@ -554,6 +680,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                   placeholder="Enter total score"
                 />
               </div>
+
 
               {/* Rating Input */}
               <div>
@@ -575,6 +702,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                 </div>
               </div>
 
+
               {/* Faculty Feedback */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Faculty Feedback</label>
@@ -587,6 +715,7 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
                 />
               </div>
             </div>
+
 
             {/* Footer */}
             <div className="px-8 py-4 bg-gray-50 border-t border-gray-200 rounded-b-xl flex gap-2 sticky bottom-0">
@@ -613,5 +742,6 @@ const AdminSubmissions: React.FC<AdminSubmissionsProps> = ({ user }) => {
     </div>
   );
 };
+
 
 export default AdminSubmissions;
