@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { signIn, signUp } from '../utils/auth';
 import '../index.css';
 import EduvergeLogo from '../../dist/assets/smartVerg.jpeg'; // <- your logo file
-
+import OnlyLogo from '../../dist/assets/onlylogo.jpeg'; // <- your logo file
 interface LoginPageProps {
   onLogin: () => void;
 }
@@ -48,9 +48,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
         {/* Watermark logo in background */}
         <img
-          src={EduvergeLogo}
+          src={OnlyLogo}
           alt="EduVerge watermark"
-          className="pointer-events-none select-none absolute -top-20 -right-16 w-80 opacity-10 blur-[1px]"
+          className="pointer-events-none select-none absolute -top-20 -right-16 w-80 opacity-15 blur-[1px]"
         />
 
         {/* Foreground content */}
@@ -61,7 +61,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               <img
                 src={EduvergeLogo}
                 alt="EduVerge logo"
-                className="w-10 h-10 object-contain"
+                className="w-12 h-12 object-contain"
               />
             </div>
             <h1 className="text-3xl font-bold text-gray-800">EduVerge</h1>
