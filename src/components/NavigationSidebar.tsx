@@ -73,10 +73,10 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ user }) => {
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle navigation"
         aria-expanded={isOpen}
-        className="md:hidden fixed top-4 left-4 z-50 p-2
-        bg-gradient-to-r from-purple-500 to-blue-500
-        text-white rounded-xl shadow-lg
-        transition-all duration-300"
+        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-gradient-to-r from-orange-100 to-purple-200 
+           text-gray-500 rounded-xl shadow-md 
+           hover:from-purple-300 hover:to-orange-300 
+           transition-all duration-300 ease-in-out"
       >
         {isOpen ? <X size={22} /> : <Menu size={22} />}
       </button>
