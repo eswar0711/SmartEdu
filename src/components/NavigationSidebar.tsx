@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   BookOpen,
@@ -22,53 +22,84 @@ interface NavigationSidebarProps {
   user: User;
 }
 
+interface NavItemProps {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+}
+
 const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false); // ✅ added
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/login');
-      window.location.reload();
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
+  const [isOpen, setIsOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
+  // ✅ Close on ESC
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, []);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+    window.location.reload();
+  };
+
+  const NavItem: React.FC<NavItemProps> = ({ to, icon, label }) => (
+    <Link
+      to={to}
+      onClick={() => setIsOpen(false)}
+      className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all
+        ${
+          isActive(to)
+            ? 'bg-blue-100 text-blue-700'
+            : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+        }`}
+    >
+      {icon}
+      <span>{label}</span>
+    </Link>
+  );
+
   return (
     <>
-      {/* ✅ Mobile Menu Button */}
+      {/* Mobile Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label="Toggle navigation"
+        aria-expanded={isOpen}
         className="md:hidden fixed top-4 left-4 z-50 p-2
-        bg-gradient-to-r from-orange-100 to-indigo-200
-        hover:from-indigo-300 hover:to-orange-300 
-        text-black rounded-xl shadow-lg"
-        aria-label="Toggle sidebar"
+        bg-gradient-to-r from-purple-500 to-blue-500
+        text-white rounded-xl shadow-lg
+        transition-all duration-300"
       >
         {isOpen ? <X size={22} /> : <Menu size={22} />}
       </button>
 
-      {/* ✅ Sidebar */}
-      <div
+      {/* Sidebar */}
+      <aside
         className={`fixed md:relative top-0 left-0 h-screen w-64 bg-white
-        border-r border-gray-200 flex flex-col shadow-sm z-40
+        border-r border-gray-200 shadow-sm z-40
         transform transition-transform duration-300
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0`}
+        role="navigation"
+        aria-label="Main Navigation"
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center gap-2 mb-3">
             <div className="p-2 bg-blue-600 rounded-lg">
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-xl font-bold text-gray-800">EduVerge</h1>
           </div>
+
           <p className="text-sm font-medium text-gray-800">{user.full_name}</p>
           <p className="text-xs text-gray-500 capitalize mt-1">
             {user.role === 'admin'
@@ -80,162 +111,77 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ user }) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-2">
           {/* ADMIN */}
           {user.role === 'admin' && (
             <>
-              <Link
+              <NavItem
                 to="/admin/dashboard"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/admin/dashboard')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                }`}
-              >
-                <BarChart3 className="w-5 h-5" />
-                Admin Dashboard
-              </Link>
-
-              <Link
+                icon={<BarChart3 className="w-5 h-5" />}
+                label="Admin Dashboard"
+              />
+              <NavItem
                 to="/admin/users"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/admin/users')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                }`}
-              >
-                <Users className="w-5 h-5" />
-                User Management
-              </Link>
-
-              <Link
+                icon={<Users className="w-5 h-5" />}
+                label="User Management"
+              />
+              <NavItem
                 to="/admin/submissions"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/admin/submissions')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                }`}
-              >
-                <FileText className="w-5 h-5" />
-                View Submissions
-              </Link>
-
-              <Link
+                icon={<FileText className="w-5 h-5" />}
+                label="View Submissions"
+              />
+              <NavItem
                 to="/admin/analytics"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/admin/analytics')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                }`}
-              >
-                <BarChart3 className="w-5 h-5" />
-                Analytics
-              </Link>
+                icon={<BarChart3 className="w-5 h-5" />}
+                label="Analytics"
+              />
             </>
           )}
 
           {/* FACULTY */}
           {user.role === 'faculty' && (
             <>
-              <Link
-                to="/"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/faculty/dashboard')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                }`}
-              >
-                <Home className="w-5 h-5" />
-                Dashboard
-              </Link>
-
-              <Link
+              <NavItem
+                to="/faculty/dashboard"
+                icon={<Home className="w-5 h-5" />}
+                label="Dashboard"
+              />
+              <NavItem
                 to="/create-assessment"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/create-assessment')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                }`}
-              >
-                <PlusCircle className="w-5 h-5" />
-                Create Assessment
-              </Link>
-
-              <Link
+                icon={<PlusCircle className="w-5 h-5" />}
+                label="Create Assessment"
+              />
+              <NavItem
                 to="/course-materials"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/course-materials')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                }`}
-              >
-                <FileText className="w-5 h-5" />
-                Course Materials
-              </Link>
+                icon={<FileText className="w-5 h-5" />}
+                label="Course Materials"
+              />
             </>
           )}
 
           {/* STUDENT */}
           {user.role === 'student' && (
             <>
-              <Link
-                to="/"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/student/dashboard')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                }`}
-              >
-                <Home className="w-5 h-5" />
-                Dashboard
-              </Link>
-
-              <Link
+              <NavItem
+                to="/student/dashboard"
+                icon={<Home className="w-5 h-5" />}
+                label="Dashboard"
+              />
+              <NavItem
                 to="/courses"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/courses')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
-                }`}
-              >
-                <BookOpen className="w-5 h-5" />
-                Course Materials
-              </Link>
-
-              <Link
+                icon={<BookOpen className="w-5 h-5" />}
+                label="Course Materials"
+              />
+              <NavItem
                 to="/score-calculator"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/score-calculator')
-                    ? 'bg-purple-100 text-purple-700'
-                    : 'text-gray-700 hover:bg-purple-50 hover:text-purple-700'
-                }`}
-              >
-                <Calculator className="w-5 h-5" />
-                Score Calculator
-              </Link>
-
-              <Link
+                icon={<Calculator className="w-5 h-5" />}
+                label="Score Calculator"
+              />
+              <NavItem
                 to="/ai-assistant"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-                  isActive('/ai-assistant')
-                    ? 'bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700'
-                    : 'text-gray-700 hover:bg-purple-50 hover:text-purple-700'
-                }`}
-              >
-                <Sparkles className="w-5 h-5" />
-                AI Assistant
-              </Link>
+                icon={<Sparkles className="w-5 h-5" />}
+                label="AI Assistant"
+              />
             </>
           )}
 
@@ -245,49 +191,36 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ user }) => {
             Settings
           </div>
 
-          <Link
+          <NavItem
             to="/profile"
-            onClick={() => setIsOpen(false)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-              isActive('/profile')
-                ? 'bg-green-100 text-green-700'
-                : 'text-gray-700 hover:bg-green-50 hover:text-green-700'
-            }`}
-          >
-            <UserIcon className="w-5 h-5" />
-            My Profile
-          </Link>
-
-          <Link
+            icon={<UserIcon className="w-5 h-5" />}
+            label="My Profile"
+          />
+          <NavItem
             to="/change-password"
-            onClick={() => setIsOpen(false)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium ${
-              isActive('/change-password')
-                ? 'bg-orange-100 text-orange-700'
-                : 'text-gray-700 hover:bg-orange-50 hover:text-orange-700'
-            }`}
-          >
-            <Lock className="w-5 h-5" />
-            Change Password
-          </Link>
+            icon={<Lock className="w-5 h-5" />}
+            label="Change Password"
+          />
         </nav>
 
         {/* Sign Out */}
         <div className="p-4 border-t">
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full font-medium"
+            className="flex items-center gap-3 px-4 py-3
+            text-red-600 hover:bg-red-50 rounded-lg
+            w-full font-medium transition"
           >
             <LogOut className="w-5 h-5" />
             Sign Out
           </button>
         </div>
-      </div>
+      </aside>
 
-      {/* ✅ Mobile Overlay */}
+      {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/40 z-30 md:hidden"
+          className="fixed inset-0 bg-black/40 md:hidden z-30"
           onClick={() => setIsOpen(false)}
         />
       )}
