@@ -72,8 +72,12 @@ const App: React.FC = () => {
   const componentUser = user ? convertAuthUserToComponentUser(user) : null;
 
   return (
-    <Router>
-      <Routes>
+    <Router
+      future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+         }}>
+     <Routes>
         {/* ===== LOGIN ROUTE ===== */}
         <Route
           path="/login"
