@@ -168,7 +168,26 @@ export const getOrCreateTestSession = async (
     throw error;
   }
 };
+export const saveSessionDraft = async (
+  sessionId: string,
+  answers: Record<string, string>
+): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('test_sessions')
+      .update({
+        draft_answers: answers, // This saves the JSON object
+        last_active_at: new Date().toISOString() // Optional: track when they were last active
+      })
+      .eq('id', sessionId);
 
+    if (error) throw error;
+    console.log('💾 Draft saved successfully');
+  } catch (error) {
+    console.error('Error saving draft:', error);
+    // We don't throw here to avoid disrupting the user flow, just log it
+  }
+};
 /**
  * Calculate remaining time based on server time (NOT client time)
  */

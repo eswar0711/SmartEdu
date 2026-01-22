@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabaseClient';
 import type { User, Question } from '../utils/supabaseClient';
 import { autoGradeMCQ } from '../utils/autoGrading';
-import NavigationSidebar from './NavigationSidebar';
+//import NavigationSidebar from './NavigationSidebar';
 import {
   getOrCreateTestSession,
   calculateRemainingTime,
@@ -223,7 +223,7 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
   if (loading) {
     return (
       <div className="flex">
-        <NavigationSidebar user={user} />
+        {/* <NavigationSidebar user={user} /> */}
         <div className="flex-1 flex items-center justify-center bg-gray-50">
           <div className="text-lg text-gray-600">Loading test...</div>
         </div>
@@ -234,7 +234,7 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
   if (error) {
     return (
       <div className="flex">
-        <NavigationSidebar user={user} />
+        {/* <NavigationSidebar user={user} /> */}
         <div className="flex-1 flex items-center justify-center bg-gray-50">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-md text-center">
             <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
@@ -255,7 +255,7 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
   if (!assessment || !testSession) {
     return (
       <div className="flex">
-        <NavigationSidebar user={user} />
+        {/* <NavigationSidebar user={user} /> */}
         <div className="flex-1 flex items-center justify-center bg-gray-50">
           <div className="text-lg text-red-600">Assessment not found</div>
         </div>
@@ -266,7 +266,7 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
   if (isTimeExpired) {
     return (
       <div className="flex">
-        <NavigationSidebar user={user} />
+        {/* <NavigationSidebar user={user} /> */}
         <div className="flex-1 flex items-center justify-center bg-gray-50">
           <div className="bg-white rounded-lg shadow-lg p-8 text-center max-w-md">
             <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
@@ -288,7 +288,7 @@ const TestTaking: React.FC<TestTakingProps> = ({ user }) => {
 
   return (
     <div className="flex bg-gray-50 min-h-screen">
-      <NavigationSidebar user={user} />
+      {/* <NavigationSidebar user={user} /> */}
 
       <div className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">

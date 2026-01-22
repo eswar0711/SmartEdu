@@ -28,6 +28,7 @@ import AdminUserManagement from './components/Admin/AdminUserManagement';
 import AdminAnalytics from './components/Admin/AdminAnalytics';
 
 import AdminSubmissions from './components/Admin/AdminSubmissions';
+import FacultyStudentManagement from './components/FacultyStudentManagement';
 // Type conversion utility
 const convertAuthUserToComponentUser = (authUser: AuthUser): any => {
   return {
@@ -160,6 +161,17 @@ const App: React.FC = () => {
             )
           }
         />
+        <Route
+          path="/faculty/students"
+          element={
+            user && user.role === 'faculty' ? (
+              <FacultyStudentManagement user={componentUser} />
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
 
         {/* ===== STUDENT ROUTES ===== */}
         <Route

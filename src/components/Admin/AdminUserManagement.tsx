@@ -44,6 +44,8 @@ const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ user }) => {
   const [actionLoading, setActionLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showAddUserModal, setShowAddUserModal] = useState(false);
+  //const { email, password, full_name, role } = await req.json();
+
   const [addUserForm, setAddUserForm] = useState<AddUserForm>({
     email: '',
     password: '',
@@ -127,112 +129,60 @@ const AdminUserManagement: React.FC<AdminUserManagementProps> = ({ user }) => {
   // ============================================
   // Add user to BOTH tables
   // ============================================
-  const addNewUser = async () => {
-    try {
-      setAddUserError('');
-      setActionLoading(true);
+ const addNewUser = async () => {
+  try {
+    setAddUserError('');
+    setActionLoading(true);
 
-      if (!addUserForm.email || !addUserForm.password || !addUserForm.full_name) {
-        setAddUserError('❌ All fields are required!');
-        setActionLoading(false);
-        return;
-      }
-
-      if (addUserForm.password.length < 6) {
-        setAddUserError('❌ Password must be at least 6 characters!');
-        setActionLoading(false);
-        return;
-      }
-
-      console.log('👤 Creating new user:', addUserForm.email);
-
-      // STEP 1: Create user in auth.users
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: addUserForm.email,
-        password: addUserForm.password
-      });
-
-      if (authError) {
-        console.error('❌ Auth error:', authError);
-        setAddUserError(`❌ Error creating auth user: ${authError.message}`);
-        setActionLoading(false);
-        return;
-      }
-
-      if (!authData.user?.id) {
-        setAddUserError('❌ Failed to create user account');
-        setActionLoading(false);
-        return;
-      }
-
-      const userId = authData.user.id;
-      console.log('✓ Auth user created:', userId);
-
-      // STEP 2: Add to user_profiles table
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          id: userId,
-          email: addUserForm.email,
-          full_name: addUserForm.full_name,
-          role: addUserForm.role,
-          is_active: true,
-          is_blocked: false
-        });
-
-      if (profileError) {
-        console.error('❌ Profile error:', profileError);
-        setAddUserError(`❌ Error creating profile: ${profileError.message}`);
-        setActionLoading(false);
-        return;
-      }
-
-      console.log('✓ Profile created');
-
-      // STEP 3: Add to users table
-      const { error: usersError } = await supabase
-        .from('users')
-        .insert({
-          id: userId,
-          email: addUserForm.email,
-          full_name: addUserForm.full_name,
-          role: addUserForm.role,
-          is_active: true,
-          is_blocked: false,
-          created_at: new Date().toISOString()
-        });
-
-      if (usersError) {
-        console.error('❌ Users table error:', usersError);
-        setAddUserError(`❌ Error adding to users table: ${usersError.message}`);
-        setActionLoading(false);
-        return;
-      }
-
-      console.log('✓ Users table record created');
-
-      setSuccessMessage(
-        `✅ ${addUserForm.role === 'student' ? 'Student' : 'Faculty'} "${addUserForm.full_name}" created successfully!`
-      );
-      setTimeout(() => setSuccessMessage(''), 3000);
-
-      setAddUserForm({
-        email: '',
-        password: '',
-        full_name: '',
-        role: 'student'
-      });
-      setShowAddUserModal(false);
-
-      // Refresh user list
-      fetchUsers();
-    } catch (error) {
-      console.error('❌ Error:', error);
-      setAddUserError(error instanceof Error ? error.message : 'Something went wrong');
-    } finally {
-      setActionLoading(false);
+    if (!addUserForm.email || !addUserForm.password || !addUserForm.full_name) {
+      setAddUserError('All fields are required');
+      return;
     }
-  };
+
+    const { data: sessionData } = await supabase.auth.getSession();
+
+    if (!sessionData.session) {
+      setAddUserError('Admin not authenticated');
+      return;
+    }
+
+    const { error } = await supabase.functions.invoke('create-user', {
+      body: {
+        email: addUserForm.email,
+        password: addUserForm.password,
+        full_name: addUserForm.full_name,
+        role: addUserForm.role, // student | faculty
+      },
+      headers: {
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
+    });
+
+    if (error) {
+      setAddUserError(error.message);
+      return;
+    }
+
+    setSuccessMessage(
+      `✅ ${addUserForm.role} "${addUserForm.full_name}" created successfully`
+    );
+
+    setShowAddUserModal(false);
+    setAddUserForm({
+      email: '',
+      password: '',
+      full_name: '',
+      role: 'student',
+    });
+
+    fetchUsers();
+  } catch (err: any) {
+    setAddUserError(err.message || 'Something went wrong');
+  } finally {
+    setActionLoading(false);
+  }
+};
+
 
   const toggleBlockUser = async (userId: string, currentStatus: boolean) => {
     try {

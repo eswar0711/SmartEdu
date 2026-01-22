@@ -156,6 +156,12 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({ user }) => {
                 icon={<FileText className="w-5 h-5" />}
                 label="Course Materials"
               />
+              <NavItem
+                to="/faculty/students"
+                icon={<Users className="w-5 h-5" />}
+                label="Student Management"
+              />
+
             </>
           )}
 
